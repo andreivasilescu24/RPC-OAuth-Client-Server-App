@@ -6,49 +6,33 @@
 
 #include "oauth.h"
 
-
-void
-oauth_prog_1(char *host)
+void oauth_prog_1(char *host)
 {
 	CLIENT *clnt;
-	char * *result_1;
+	char **result_1;
 	authorization_payload request_authorization_1_arg1;
-	access_token_response  *result_2;
+	access_token_response *result_2;
 	authorization_payload request_access_token_1_arg1;
 	access_token_payload request_access_token_1_arg2;
 
-#ifndef	DEBUG
-	clnt = clnt_create (host, OAUTH_PROG, OAUTH_VERS, "udp");
-	if (clnt == NULL) {
-		clnt_pcreateerror (host);
-		exit (1);
+#ifndef DEBUG
+	clnt = clnt_create(host, OAUTH_PROG, OAUTH_VERS, "udp");
+	if (clnt == NULL)
+	{
+		clnt_pcreateerror(host);
+		exit(1);
 	}
-#endif	/* DEBUG */
-
-	result_1 = request_authorization_1(request_authorization_1_arg1, clnt);
-	if (result_1 == (char **) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
-	result_2 = request_access_token_1(request_access_token_1_arg1, request_access_token_1_arg2, clnt);
-	if (result_2 == (access_token_response *) NULL) {
-		clnt_perror (clnt, "call failed");
-	}
-#ifndef	DEBUG
-	clnt_destroy (clnt);
-#endif	 /* DEBUG */
 }
 
-
-int
-main (int argc, char *argv[])
+int main(int argc, char *argv[])
 {
 	char *host;
 
-	if (argc < 2) {
-		printf ("usage: %s server_host\n", argv[0]);
-		exit (1);
-	}
+	FILE* operations_file = fopen(argv[2], "r");
+
+	
+
 	host = argv[1];
-	oauth_prog_1 (host);
-exit (0);
+	oauth_prog_1(host);
+	exit(0);
 }
