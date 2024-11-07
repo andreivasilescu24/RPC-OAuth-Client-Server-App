@@ -11,6 +11,7 @@
 #include <memory.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
+#include "database_management.c"
 
 #ifndef SIG_PF
 #define SIG_PF void (*)(int)
@@ -85,74 +86,7 @@ int main(int argc, char **argv)
 {
 	register SVCXPRT *transp;
 
-	FILE *users_file = fopen(argv[1], "r");
-	FILE *resources_file = fopen(argv[2], "r");
-	FILE *approvals_file = fopen(argv[3], "r");
-
-	int token_valability = atoi(argv[4]);
-
-	typedef struct
-	{
-		char *user;
-		char **resources;
-		char **rights;
-		int num_accesable_resources;
-	} UserDetails;
-
-	int num_users;
-	int num_resources;
-	fscanf(users_file, "%d", &num_users);
-	fscanf(resources_file, "%d", &num_resources);
-
-	char **resources = malloc(num_resources * sizeof(char *));
-	for (int i = 0; i < num_resources; i++)
-	{
-		resources[i] = malloc(16 * sizeof(char));
-		fscanf(resources_file, "%s", resources[i]);
-	}
-
-	UserDetails **user_details = malloc(num_users * sizeof(UserDetails *));
-
-	for (int i = 0; i < num_users; i++)
-	{
-		UserDetails *current = malloc(sizeof(UserDetails));
-		current->user = malloc(16 * sizeof(char));
-		fscanf(users_file, "%s", current->user);
-
-		current->num_accesable_resources = 0;
-		char *current_line = malloc(100 * sizeof(char));
-		fscanf(approvals_file, "%s", current_line);
-
-		if (strcmp(current_line, "*,-") == 0)
-		{
-			current->resources = NULL;
-			current->rights = NULL;
-		}
-		else
-		{
-			current->resources = malloc(num_resources * sizeof(char *));
-			current->rights = malloc(num_resources * sizeof(char *));
-
-			char *p = strtok(current_line, ",");
-			int index = 0;
-
-			while (p)
-			{
-				current->resources[index] = malloc((strlen(p) + 1) * sizeof(char));
-				strcpy(current->resources[index], p);
-
-				p = strtok(NULL, ",");
-				current->rights[index] = malloc((strlen(p) + 1) * sizeof(char));
-				strcpy(current->rights[index], p);
-
-				p = strtok(NULL, ",");
-				index++;
-				current->num_accesable_resources++;
-			}
-		}
-
-		user_details[i] = current;
-	}
+	load_user_details(argv[1], argv[2], argv[3], argv[4]);
 
 	pmap_unset(OAUTH_PROG, OAUTH_VERS);
 
