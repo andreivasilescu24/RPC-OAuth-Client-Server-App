@@ -1,27 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "database_management.h"
 
-typedef struct
-{
-    char *user;
-    char **resources;
-    char **rights;
-    int num_accesable_resources;
-} UserDetails;
+UserDetails **user_details;
 
-static UserDetails **user_details;
 char **resources;
-static int num_users;
+int num_users;
 int token_valability;
 int num_users;
 int num_resources;
 
-void load_user_details(char *users_id_file, char *resources_file, char *approvals_file, char *token_valability)
+void load_user_details(char *users_id_file_name, char *resources_file_name, char *approvals_file_name, char *token_valability)
 {
-    FILE *users_file = fopen(users_id_file, "r");
-    FILE *resources_file = fopen(resources_file, "r");
-    FILE *approvals_file = fopen(approvals_file, "r");
+    FILE *users_file = fopen(users_id_file_name, "r");
+    FILE *resources_file = fopen(resources_file_name, "r");
+    FILE *approvals_file = fopen(approvals_file_name, "r");
 
     token_valability = atoi(token_valability);
 
@@ -76,5 +70,17 @@ void load_user_details(char *users_id_file, char *resources_file, char *approval
         }
 
         user_details[i] = current;
+    }
+}
+
+void print_db()
+{
+    for (int i = 0; i < num_users; i++)
+    {
+        printf("User: %s\n", user_details[i]->user);
+        for (int j = 0; j < user_details[i]->num_accesable_resources; j++)
+        {
+            printf("Resource: %s, Right: %s\n", user_details[i]->resources[j], user_details[i]->rights[j]);
+        }
     }
 }

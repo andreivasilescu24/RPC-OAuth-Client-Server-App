@@ -16,6 +16,7 @@ extern "C" {
 
 struct authorization_payload {
 	char *id;
+	int refresh_token;
 };
 typedef struct authorization_payload authorization_payload;
 
@@ -30,6 +31,11 @@ struct access_token_response {
 	int valability;
 };
 typedef struct access_token_response access_token_response;
+
+struct delegated_action_payload {
+	char *action;
+};
+typedef struct delegated_action_payload delegated_action_payload;
 
 struct request_access_token_1_argument {
 	authorization_payload arg1;
@@ -47,6 +53,9 @@ extern  char ** request_authorization_1_svc(authorization_payload , struct svc_r
 #define REQUEST_ACCESS_TOKEN 2
 extern  access_token_response * request_access_token_1(authorization_payload , access_token_payload , CLIENT *);
 extern  access_token_response * request_access_token_1_svc(authorization_payload , access_token_payload , struct svc_req *);
+#define VALIDATE_DELEGATED_ACTION 3
+extern  void * validate_delegated_action_1(delegated_action_payload , CLIENT *);
+extern  void * validate_delegated_action_1_svc(delegated_action_payload , struct svc_req *);
 extern int oauth_prog_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */
@@ -56,6 +65,9 @@ extern  char ** request_authorization_1_svc();
 #define REQUEST_ACCESS_TOKEN 2
 extern  access_token_response * request_access_token_1();
 extern  access_token_response * request_access_token_1_svc();
+#define VALIDATE_DELEGATED_ACTION 3
+extern  void * validate_delegated_action_1();
+extern  void * validate_delegated_action_1_svc();
 extern int oauth_prog_1_freeresult ();
 #endif /* K&R C */
 
@@ -65,12 +77,14 @@ extern int oauth_prog_1_freeresult ();
 extern  bool_t xdr_authorization_payload (XDR *, authorization_payload*);
 extern  bool_t xdr_access_token_payload (XDR *, access_token_payload*);
 extern  bool_t xdr_access_token_response (XDR *, access_token_response*);
+extern  bool_t xdr_delegated_action_payload (XDR *, delegated_action_payload*);
 extern  bool_t xdr_request_access_token_1_argument (XDR *, request_access_token_1_argument*);
 
 #else /* K&R C */
 extern bool_t xdr_authorization_payload ();
 extern bool_t xdr_access_token_payload ();
 extern bool_t xdr_access_token_response ();
+extern bool_t xdr_delegated_action_payload ();
 extern bool_t xdr_request_access_token_1_argument ();
 
 #endif /* K&R C */

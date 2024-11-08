@@ -6,7 +6,7 @@
 
 #include "oauth.h"
 
-void oauth_prog_1(char *host)
+void oauth_prog_1(char *host, char *input_file_name)
 {
 	CLIENT *clnt;
 	char **result_1;
@@ -15,24 +15,63 @@ void oauth_prog_1(char *host)
 	authorization_payload request_access_token_1_arg1;
 	access_token_payload request_access_token_1_arg2;
 
-#ifndef DEBUG
 	clnt = clnt_create(host, OAUTH_PROG, OAUTH_VERS, "udp");
 	if (clnt == NULL)
 	{
 		clnt_pcreateerror(host);
 		exit(1);
 	}
+
+	FILE *input_file = fopen(input_file_name, "r");
+	FILE *output_file = fopen("tests_output/test1/client.out", "w");
+	char line[100];
+	while (fgets(line, 100, input_file))
+	{
+		int auto_refresh = -1;
+		char *resource = malloc(16 * sizeof(char));
+
+		char *p = strtok(line, ",");
+		char *id = malloc((strlen(p) + 1) * sizeof(char));
+		strcpy(id, p);
+
+		p = strtok(NULL, ",");
+		char *operation = malloc((strlen(p) + 1) * sizeof(char));
+		strcpy(operation, p);
+
+		p = strtok(NULL, ",");
+		if (!strcmp(operation, "REQUEST"))
+		{
+			auto_refresh = atoi(p);
+		}
+		else
+		{
+			strcpy(resource, p);
+		}
+
+		if (auto_refresh != -1)
+		{
+
+			authorization_payload auth_payload;
+			auth_payload.id = malloc((strlen(id) + 1) * sizeof(char));
+			strcpy(auth_payload.id, id);
+			auth_payload.refresh_token = auto_refresh;
+
+			char **auth_token = request_authorization_1(auth_payload, clnt);
+			fprintf(output_file, "%s -> \n", *auth_token);
+		}
+	}
+
+	fclose(input_file);
+	fclose(output_file);
 }
 
 int main(int argc, char *argv[])
 {
 	char *host;
 
-	FILE* operations_file = fopen(argv[2], "r");
-
-	
+	FILE *operations_file = fopen(argv[2], "r");
 
 	host = argv[1];
-	oauth_prog_1(host);
+	oauth_prog_1(host, argv[2]);
 	exit(0);
 }

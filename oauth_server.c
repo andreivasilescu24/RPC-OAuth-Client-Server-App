@@ -5,11 +5,28 @@
  */
 
 #include "oauth.h"
+#include "token.h"
 
 char **
-request_authorization_1_svc(authorization_payload arg1,  struct svc_req *rqstp)
+request_authorization_1_svc(authorization_payload arg1, struct svc_req *rqstp)
 {
-	static char * result;
+	FILE *file = fopen("tests_output/test1/server.out", "a");
+	fprintf(file, "BEGIN %s AUTHZ\n", arg1.id);
+	static char *result;
+
+	result = malloc(16 * sizeof(char));
+	strcpy(result, generate_access_token(arg1.id));
+
+	fprintf(file, "\tRequestToken = %s\n", result);
+	fclose(file);
+
+	return &result;
+}
+
+access_token_response *
+request_access_token_1_svc(authorization_payload arg1, access_token_payload arg2, struct svc_req *rqstp)
+{
+	static access_token_response result;
 
 	/*
 	 * insert server code here
@@ -18,14 +35,7 @@ request_authorization_1_svc(authorization_payload arg1,  struct svc_req *rqstp)
 	return &result;
 }
 
-access_token_response *
-request_access_token_1_svc(authorization_payload arg1, access_token_payload arg2,  struct svc_req *rqstp)
+void *validate_delegated_action_1_svc(delegated_action_payload arg1, struct svc_req *rqstp)
 {
-	static access_token_response  result;
-
-	/*
-	 * insert server code here
-	 */
-
-	return &result;
+	return NULL;
 }

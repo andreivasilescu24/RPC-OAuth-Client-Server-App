@@ -12,6 +12,8 @@ xdr_authorization_payload (XDR *xdrs, authorization_payload *objp)
 
 	 if (!xdr_string (xdrs, &objp->id, 16))
 		 return FALSE;
+	 if (!xdr_int (xdrs, &objp->refresh_token))
+		 return FALSE;
 	return TRUE;
 }
 
@@ -35,6 +37,16 @@ xdr_access_token_response (XDR *xdrs, access_token_response *objp)
 	 if (!xdr_string (xdrs, &objp->refresh_token, 16))
 		 return FALSE;
 	 if (!xdr_int (xdrs, &objp->valability))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_delegated_action_payload (XDR *xdrs, delegated_action_payload *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_string (xdrs, &objp->action, 16))
 		 return FALSE;
 	return TRUE;
 }
