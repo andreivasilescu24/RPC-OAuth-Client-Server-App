@@ -5,6 +5,8 @@
  */
 
 #include "oauth.h"
+#include <fstream>
+#include <string.h>
 
 void oauth_prog_1(char *host, char *input_file_name)
 {
@@ -22,20 +24,23 @@ void oauth_prog_1(char *host, char *input_file_name)
 		exit(1);
 	}
 
-	FILE *input_file = fopen(input_file_name, "r");
-	FILE *output_file = fopen("tests_output/test1/client.out", "w");
-	char line[100];
-	while (fgets(line, 100, input_file))
-	{
-		int auto_refresh = -1;
-		char *resource = malloc(16 * sizeof(char));
+	std::ifstream input_file(input_file_name);
+	std::ofstream output_file("tests_output/test1/client.out");
 
-		char *p = strtok(line, ",");
-		char *id = malloc((strlen(p) + 1) * sizeof(char));
+	char line_c[100];
+	std::string line;
+	while (std::getline(input_file, line))
+	{
+		strcpy(line_c, line.c_str());
+		int auto_refresh = -1;
+		char *resource = new char[16];
+
+		char *p = strtok(line_c, ",");
+		char *id = new char[strlen(p) + 1];
 		strcpy(id, p);
 
 		p = strtok(NULL, ",");
-		char *operation = malloc((strlen(p) + 1) * sizeof(char));
+		char *operation = new char[strlen(p) + 1];
 		strcpy(operation, p);
 
 		p = strtok(NULL, ",");
@@ -52,17 +57,17 @@ void oauth_prog_1(char *host, char *input_file_name)
 		{
 
 			authorization_payload auth_payload;
-			auth_payload.id = malloc((strlen(id) + 1) * sizeof(char));
+			auth_payload.id = (char *)malloc((strlen(id) + 1) * sizeof(char));
 			strcpy(auth_payload.id, id);
 			auth_payload.refresh_token = auto_refresh;
 
 			char **auth_token = request_authorization_1(auth_payload, clnt);
-			fprintf(output_file, "%s -> \n", *auth_token);
+			output_file << *auth_token << " -> \n";
 		}
 	}
 
-	fclose(input_file);
-	fclose(output_file);
+	input_file.close();
+	output_file.close();
 }
 
 int main(int argc, char *argv[])

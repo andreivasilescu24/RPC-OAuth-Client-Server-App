@@ -6,19 +6,21 @@
 
 #include "oauth.h"
 #include "token.h"
+#include <fstream>
 
 char **
 request_authorization_1_svc(authorization_payload arg1, struct svc_req *rqstp)
 {
-	FILE *file = fopen("tests_output/test1/server.out", "a");
-	fprintf(file, "BEGIN %s AUTHZ\n", arg1.id);
-	static char *result;
+	std::ofstream output_file;
+	output_file.open("tests_output/test1/server.out", std::ios_base::app);
+	output_file << "BEGIN " << arg1.id << " AUTHZ\n";
 
-	result = malloc(16 * sizeof(char));
+	static char *result = new char[16];
+
 	strcpy(result, generate_access_token(arg1.id));
 
-	fprintf(file, "\tRequestToken = %s\n", result);
-	fclose(file);
+	output_file << "\tRequestToken = " << result << "\n";
+	output_file.close();
 
 	return &result;
 }

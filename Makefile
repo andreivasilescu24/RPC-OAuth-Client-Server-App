@@ -1,13 +1,13 @@
-CC = gcc
+CC = g++
 CFLAGS = -Wall -I/usr/include/tirpc -g
 
-RPC_FILES = oauth.h oauth_clnt.c oauth_svc.c oauth_xdr.c
+RPC_FILES = oauth.h oauth_clnt.cpp oauth_svc.cpp oauth_xdr.cpp
 
 SERVER = server
 CLIENT = client
 
-SERVER_SRC = oauth_server.c oauth_svc.c oauth_xdr.c database_management.c database_management.h
-CLIENT_SRC = oauth_client.c oauth_clnt.c oauth_xdr.c
+SERVER_SRC = oauth_server.cpp oauth_svc.cpp oauth_xdr.cpp database_management.cpp database_management.h
+CLIENT_SRC = oauth_client.cpp oauth_clnt.cpp oauth_xdr.cpp
 
 build: 
 	$(CC) $(CFLAGS) -o $(SERVER) $(SERVER_SRC) -lnsl -ltirpc	

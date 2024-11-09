@@ -100,6 +100,7 @@ int main(int argc, char **argv)
 	register SVCXPRT *transp;
 
 	load_user_details(argv[1], argv[2], argv[3], argv[4]);
+
 	pmap_unset(OAUTH_PROG, OAUTH_VERS);
 
 	transp = svcudp_create(RPC_ANYSOCK);
