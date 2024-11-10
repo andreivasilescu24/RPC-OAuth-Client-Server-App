@@ -7,6 +7,7 @@
 #include "oauth.h"
 #include <fstream>
 #include <string.h>
+#include <iostream>
 
 void oauth_prog_1(char *host, char *input_file_name)
 {
@@ -47,22 +48,31 @@ void oauth_prog_1(char *host, char *input_file_name)
 		if (!strcmp(operation, "REQUEST"))
 		{
 			auto_refresh = atoi(p);
-		}
-		else
-		{
-			strcpy(resource, p);
-		}
-
-		if (auto_refresh != -1)
-		{
 
 			authorization_payload auth_payload;
 			auth_payload.id = (char *)malloc((strlen(id) + 1) * sizeof(char));
 			strcpy(auth_payload.id, id);
 			auth_payload.refresh_token = auto_refresh;
 
-			char **auth_token = request_authorization_1(auth_payload, clnt);
-			output_file << *auth_token << " -> \n";
+			char **auth_response = request_authorization_1(auth_payload, clnt);
+			if (strcmp(*auth_response, "USER_NOT_FOUND") == 0)
+			{
+				output_file << *auth_response << "\n";
+			}
+			else
+			{
+				output_file << *auth_response << " -> \n";
+				access_token_payload access_payload;
+				strcpy(access_payload.auth_token, *auth_response);
+
+				access_token_response *access_token = request_access_token_1(auth_payload, access_payload, clnt);
+				output_file << access_token->resource_token;
+				std::cout << access_token->refresh_token << " " << access_token->valability << "\n";
+			}
+		}
+		else
+		{
+			strcpy(resource, p);
 		}
 	}
 

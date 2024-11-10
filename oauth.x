@@ -4,7 +4,7 @@ struct authorization_payload {
 };
 
 struct access_token_payload {
-    string token <16>;
+    string auth_token <16>;
 };
 
 struct access_token_response {

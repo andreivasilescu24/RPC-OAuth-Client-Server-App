@@ -10,12 +10,15 @@
 // UserDetails **user_details;
 
 // char **resources;
-int num_users;
 int token_valability;
+int num_users;
 int num_resources;
 
 std::map<std::string, std::map<std::string, ResourceRights>> user_details;
 std::vector<std::string> resources;
+std::map<std::string, std::string> auth_tokens;
+std::map<std::string, std::string> access_tokens;
+std::map<std::string, std::string> refresh_tokens;
 
 ResourceRights get_resource_rights(char *rights)
 {
@@ -32,6 +35,21 @@ ResourceRights get_resource_rights(char *rights)
     rights_struct.del = del;
     rights_struct.execute = execute;
     return rights_struct;
+}
+
+std::string get_auth_token(char *id)
+{
+    return auth_tokens[id];
+}
+
+void set_user_access_token(char *id, char *access_token)
+{
+    access_tokens[id] = access_token;
+}
+
+int get_token_valability()
+{
+    return token_valability;
 }
 
 void load_user_details(char *users_id_file_name, char *resources_file_name, char *approvals_file_name, char *token_valability_arg)
@@ -80,6 +98,11 @@ void load_user_details(char *users_id_file_name, char *resources_file_name, char
             user_details[user_id] = user_resources;
         }
     }
+}
+
+bool user_exists(char *user_id)
+{
+    return user_details.find(user_id) != user_details.end();
 }
 
 void print_db()

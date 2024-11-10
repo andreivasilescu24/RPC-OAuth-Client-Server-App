@@ -22,7 +22,7 @@ xdr_access_token_payload (XDR *xdrs, access_token_payload *objp)
 {
 	register int32_t *buf;
 
-	 if (!xdr_string (xdrs, &objp->token, 16))
+	 if (!xdr_string (xdrs, &objp->auth_token, 16))
 		 return FALSE;
 	return TRUE;
 }

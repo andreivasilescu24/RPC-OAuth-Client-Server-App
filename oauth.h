@@ -21,7 +21,7 @@ struct authorization_payload {
 typedef struct authorization_payload authorization_payload;
 
 struct access_token_payload {
-	char *token;
+	char *auth_token;
 };
 typedef struct access_token_payload access_token_payload;
 
