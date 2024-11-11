@@ -16,7 +16,7 @@ void oauth_prog_1(char *host, char *input_file_name)
 	authorization_payload request_authorization_1_arg1;
 	access_token_response *result_2;
 	authorization_payload request_access_token_1_arg1;
-	access_token_payload request_access_token_1_arg2;
+	// access_token_payload request_access_token_1_arg2;
 
 	clnt = clnt_create(host, OAUTH_PROG, OAUTH_VERS, "udp");
 	if (clnt == NULL)
@@ -55,23 +55,46 @@ void oauth_prog_1(char *host, char *input_file_name)
 			auth_payload.refresh_token = auto_refresh;
 
 			char **auth_response = request_authorization_1(auth_payload, clnt);
-			if (strcmp(*auth_response, "USER_NOT_FOUND") == 0)
+			if (!strcmp(*auth_response, "USER_NOT_FOUND"))
 			{
 				output_file << *auth_response << "\n";
 			}
 			else
 			{
-				output_file << *auth_response << " -> \n";
-				access_token_payload access_payload;
-				strcpy(access_payload.auth_token, *auth_response);
+				approve_token_payload approval_payload;
+				approval_payload.auth_token = new char[16];
+				strcpy(approval_payload.auth_token, *auth_response);
 
-				access_token_response *access_token = request_access_token_1(auth_payload, access_payload, clnt);
-				output_file << access_token->resource_token;
-				std::cout << access_token->refresh_token << " " << access_token->valability << "\n";
+				approve_req_token_response *user_approval_response = approve_request_token_1(approval_payload, clnt);
+
+				output_file << user_approval_response->auth_token << " " << user_approval_response->is_signed << "\n";
+
+				access_token_response *access_token_res = request_access_token_1(auth_payload, approval_payload, clnt);
+				// if (access_token_res->error == NULL)
+				// {
+				// 	output_file << "OK\n";
+				// }
+				// else
+				// {
+				// 	output_file << "not OK" << "\n";
+				// }
+				if (access_token_res == NULL)
+				{
+					output_file << "Failed to get access token response\n";
+				}
+				// if (access_token_res->error)
+				// {
+				// 	output_file << access_token_res->error << "\n";
+				// }
+				// else
+				// {
+				// 	output_file << *auth_response << " -> " << access_token_res->resource_token << "\n";
+				// }
 			}
 		}
 		else
 		{
+			std::cout << "DELEGATED\n";
 			strcpy(resource, p);
 		}
 	}
@@ -84,7 +107,7 @@ int main(int argc, char *argv[])
 {
 	char *host;
 
-	FILE *operations_file = fopen(argv[2], "r");
+	// FILE *operations_file = fopen(argv[2], "r");
 
 	host = argv[1];
 	oauth_prog_1(host, argv[2]);

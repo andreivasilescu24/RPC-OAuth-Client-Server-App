@@ -6,19 +6,21 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <algorithm>
 
-// UserDetails **user_details;
-
-// char **resources;
 int token_valability;
 int num_users;
 int num_resources;
+int request_count = 1;
 
-std::map<std::string, std::map<std::string, ResourceRights>> user_details;
 std::vector<std::string> resources;
+std::vector<std::string> users;
+std::map<int, std::map<std::string, ResourceRights>> request_approvals;
 std::map<std::string, std::string> auth_tokens;
 std::map<std::string, std::string> access_tokens;
+std::map<std::string, int> token_approvals;
 std::map<std::string, std::string> refresh_tokens;
+std::map<std::string, int> signed_tokens;
 
 ResourceRights get_resource_rights(char *rights)
 {
@@ -47,9 +49,38 @@ void set_user_access_token(char *id, char *access_token)
     access_tokens[id] = access_token;
 }
 
+void set_user_auth_token(char *id, char *auth_token)
+{
+    auth_tokens[id] = auth_token;
+}
+
 int get_token_valability()
 {
     return token_valability;
+}
+
+bool user_approves(int request_id)
+{
+    if (request_approvals.find(request_id) == request_approvals.end())
+        return false;
+    return true;
+}
+
+void sign_token(char *token)
+{
+    signed_tokens[token] = 1;
+}
+
+bool is_token_signed(char *token)
+{
+    return signed_tokens.find(token) != signed_tokens.end();
+}
+
+int update_request_count()
+{
+    int curr_req_id = request_count;
+    request_count++;
+    return curr_req_id;
 }
 
 void load_user_details(char *users_id_file_name, char *resources_file_name, char *approvals_file_name, char *token_valability_arg)
@@ -74,52 +105,98 @@ void load_user_details(char *users_id_file_name, char *resources_file_name, char
         char *user_id = new char[16];
         users_file >> user_id;
 
-        std::string line;
-        std::getline(approvals_file, line);
+        users.push_back(user_id);
+    }
 
+    std::string line;
+    int i = 1;
+    while (std::getline(approvals_file, line))
+    {
         if (line == "*,-")
         {
-            user_details[user_id] = std::map<std::string, ResourceRights>();
+            i++;
+            continue;
         }
-        else
+        char *line_c = new char[line.size() + 1];
+        strcpy(line_c, line.c_str());
+        char *p = strtok(line_c, ",");
+        while (p)
         {
-            std::map<std::string, ResourceRights> user_resources;
-            char *line_c = new char[line.size() + 1];
-            strcpy(line_c, line.c_str());
-            char *p = strtok(line_c, ",");
-            while (p)
-            {
-                char *resource = new char[16];
-                strcpy(resource, p);
-                p = strtok(NULL, ",");
-                user_resources[resource] = get_resource_rights(p);
-                p = strtok(NULL, ",");
-            }
-            user_details[user_id] = user_resources;
+            char *resource = new char[16];
+            strcpy(resource, p);
+            p = strtok(NULL, ",");
+            request_approvals[i][resource] = get_resource_rights(p);
+            p = strtok(NULL, ",");
         }
+        i++;
     }
 }
 
 bool user_exists(char *user_id)
 {
-    return user_details.find(user_id) != user_details.end();
+    return std::find(users.begin(), users.end(), user_id) != users.end();
 }
 
 void print_db()
 {
-
-    for (auto user : user_details)
+    printf("Users:\n");
+    for (auto user : users)
     {
-        printf("User: %s\n", user.first.c_str());
-        for (auto resource : user.second)
+        printf("%s\n", user.c_str());
+    }
+
+    printf("Resources:\n");
+    for (auto resource : resources)
+    {
+        printf("%s\n", resource.c_str());
+    }
+
+    printf("Approvals:\n");
+    for (auto approval : request_approvals)
+    {
+        printf("Request %d:\n", approval.first);
+        for (auto resource : approval.second)
         {
-            printf("Resource: %s\n", resource.first.c_str());
-            printf("Read: %d\n", resource.second.read);
-            printf("Insert: %d\n", resource.second.insert);
-            printf("Modify: %d\n", resource.second.modify);
-            printf("Delete: %d\n", resource.second.del);
-            printf("Execute: %d\n", resource.second.execute);
+            printf("\tResource: %s\n", resource.first.c_str());
+            printf("\t\tRead: %d\n", resource.second.read);
+            printf("\t\tInsert: %d\n", resource.second.insert);
+            printf("\t\tModify: %d\n", resource.second.modify);
+            printf("\t\tDelete: %d\n", resource.second.del);
+            printf("\t\tExecute: %d\n", resource.second.execute);
         }
-        printf("\n");
+    }
+
+    printf("Auth Tokens:\n");
+    for (auto token : auth_tokens)
+    {
+        printf("User: %s\n", token.first.c_str());
+        printf("\tToken: %s\n", token.second.c_str());
+    }
+
+    printf("Access Tokens:\n");
+    for (auto token : access_tokens)
+    {
+        printf("User: %s\n", token.first.c_str());
+        printf("\tToken: %s\n", token.second.c_str());
+    }
+
+    printf("Token Approvals:\n");
+    for (auto token : token_approvals)
+    {
+        printf("Token: %s\n", token.first.c_str());
+        printf("\tApprovals: %d\n", token.second);
+    }
+
+    printf("Refresh Tokens:\n");
+    for (auto token : refresh_tokens)
+    {
+        printf("Token: %s\n", token.first.c_str());
+        printf("\tRefresh Token: %s\n", token.second.c_str());
+    }
+
+    printf("Signed Tokens:\n");
+    for (auto token : signed_tokens)
+    {
+        printf("Token: %s\n", token.first.c_str());
     }
 }

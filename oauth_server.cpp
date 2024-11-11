@@ -26,6 +26,7 @@ request_authorization_1_svc(authorization_payload arg1, struct svc_req *rqstp)
 	}
 
 	strcpy(result, generate_access_token(arg1.id));
+	set_user_auth_token(arg1.id, result);
 
 	output_file << "\tRequestToken = " << result << "\n";
 	output_file.close();
@@ -34,7 +35,7 @@ request_authorization_1_svc(authorization_payload arg1, struct svc_req *rqstp)
 }
 
 access_token_response *
-request_access_token_1_svc(authorization_payload arg1, access_token_payload arg2, struct svc_req *rqstp)
+request_access_token_1_svc(authorization_payload arg1, approve_token_payload arg2, struct svc_req *rqstp)
 {
 
 	std::ofstream output_file;
@@ -45,18 +46,61 @@ request_access_token_1_svc(authorization_payload arg1, access_token_payload arg2
 	char *auth_token = new char[16];
 	strcpy(auth_token, auth_token_c);
 
-	result.resource_token = generate_access_token(auth_token);
+	if (!is_token_signed(auth_token))
+	{
+		result.error = new char[15];
+		strcpy(result.error, "REQUEST_DENIED");
+		result.refresh_token = NULL;
+		result.resource_token = NULL;
+		result.valability = 0;
+		output_file << "Token not signed, request denied\n";
+		output_file.close();
+		delete[] auth_token;
+		return &result;
+	}
+
+	result.resource_token = new char[16];
+	strcpy(result.resource_token, generate_access_token(auth_token));
 	set_user_access_token(arg1.id, result.resource_token);
-	result.refresh_token = generate_access_token(result.resource_token);
+
+	result.refresh_token = new char[16];
+	strcpy(result.refresh_token, generate_access_token(auth_token));
+
 	result.valability = get_token_valability();
+	result.error = NULL;
 
 	output_file << "\tAccessToken = " << result.resource_token << "\n";
 	output_file.close();
 
+	delete[] auth_token;
 	return &result;
 }
 
 void *validate_delegated_action_1_svc(delegated_action_payload arg1, struct svc_req *rqstp)
 {
 	return NULL;
+}
+
+approve_req_token_response *approve_request_token_1_svc(approve_token_payload arg1, struct svc_req *rqstp)
+{
+
+	static approve_req_token_response result;
+	int curr_req_id = update_request_count();
+
+	// std::ofstream output_file;
+	// output_file.open("tests_output/test1/server.out", std::ios_base::app);
+
+	result.auth_token = arg1.auth_token;
+	if (user_approves(curr_req_id))
+	{
+		// output_file << "\t" << arg1.auth_token << " approved\n";
+		result.is_signed = 1;
+		sign_token(result.auth_token);
+	}
+	else
+	{
+		result.is_signed = 0;
+	}
+
+	return &result;
 }
