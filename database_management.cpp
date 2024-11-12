@@ -7,6 +7,7 @@
 #include <fstream>
 #include <vector>
 #include <algorithm>
+#include <iostream>
 
 int token_valability;
 int num_users;
@@ -18,9 +19,10 @@ std::vector<std::string> users;
 std::map<int, std::map<std::string, ResourceRights>> request_approvals;
 std::map<std::string, std::string> auth_tokens;
 std::map<std::string, std::string> access_tokens;
-std::map<std::string, int> token_approvals;
+std::map<std::string, std::map<std::string, ResourceRights>> token_permissions;
 std::map<std::string, std::string> refresh_tokens;
 std::map<std::string, int> signed_tokens;
+std::map<std::string, int> token_operations_remaining;
 
 ResourceRights get_resource_rights(char *rights)
 {
@@ -47,6 +49,19 @@ std::string get_auth_token(char *id)
 void set_user_access_token(char *id, char *access_token)
 {
     access_tokens[id] = access_token;
+    token_operations_remaining[access_token] = token_valability;
+}
+
+void set_user_refresh_token(char *id, char *refresh_token)
+{
+    for (auto entry : refresh_tokens)
+        if (entry.second == id)
+        {
+            refresh_tokens.erase(entry.first);
+            break;
+        }
+
+    refresh_tokens[refresh_token] = id;
 }
 
 void set_user_auth_token(char *id, char *auth_token)
@@ -83,6 +98,99 @@ int update_request_count()
     return curr_req_id;
 }
 
+bool token_exists(char *token)
+{
+    std::string token_str = token;
+    for (auto entry : access_tokens)
+        if (entry.second == token_str)
+            return true;
+
+    return false;
+}
+
+bool is_token_valid(char *token)
+{
+    if (token_operations_remaining[token])
+        return true;
+    return false;
+}
+
+bool resource_exists(char *resource)
+{
+    for (auto res : resources)
+        if (res == std::string(resource))
+            return true;
+
+    return false;
+}
+
+bool is_token_op_permitted(char *token, char *operation, char *resource)
+{
+    std::string operation_str = operation;
+    int is_op_permitted = 0;
+
+    if (token_permissions[token].find(resource) == token_permissions[token].end())
+        return is_op_permitted;
+
+    if (operation_str == "READ")
+    {
+        is_op_permitted = token_permissions[token][resource].read;
+    }
+    else if (operation_str == "INSERT")
+    {
+        is_op_permitted = token_permissions[token][resource].insert;
+    }
+    else if (operation_str == "MODIFY")
+    {
+        is_op_permitted = token_permissions[token][resource].modify;
+    }
+    else if (operation_str == "DELETE")
+    {
+        is_op_permitted = token_permissions[token][resource].del;
+    }
+    else if (operation_str == "EXECUTE")
+    {
+        is_op_permitted = token_permissions[token][resource].execute;
+    }
+
+    return is_op_permitted;
+}
+
+void set_access_token_permissions(char *token)
+{
+    token_permissions[token] = request_approvals[request_count - 1];
+}
+
+void update_token_op_remaining(char *token)
+{
+    if (token_operations_remaining.find(token) != token_operations_remaining.end())
+        token_operations_remaining[token]--;
+}
+
+int get_token_remaining_op(char *token)
+{
+    if (token_operations_remaining.find(token) != token_operations_remaining.end())
+        return token_operations_remaining[token];
+    return 0;
+}
+
+bool refresh_token_exists(char *refresh_token)
+{
+    return refresh_tokens.find(refresh_token) != refresh_tokens.end();
+}
+
+std::string get_refresh_associated_id(char *refresh_token)
+{
+    return refresh_tokens[refresh_token];
+}
+
+void link_refresh_token_permissions(char *refresh_token, char *id)
+{
+    std::string ex_access_token = access_tokens[id];
+    token_permissions[refresh_token] = token_permissions[ex_access_token];
+    token_permissions.erase(ex_access_token);
+}
+
 void load_user_details(char *users_id_file_name, char *resources_file_name, char *approvals_file_name, char *token_valability_arg)
 {
     std::ifstream users_file(users_id_file_name);
@@ -97,7 +205,7 @@ void load_user_details(char *users_id_file_name, char *resources_file_name, char
     resources.resize(num_resources);
     for (int i = 0; i < num_resources; i++)
     {
-        std::getline(resources_file, resources[i]);
+        resources_file >> resources[i];
     }
 
     for (int i = 0; i < num_users; i++)
@@ -180,12 +288,12 @@ void print_db()
         printf("\tToken: %s\n", token.second.c_str());
     }
 
-    printf("Token Approvals:\n");
-    for (auto token : token_approvals)
-    {
-        printf("Token: %s\n", token.first.c_str());
-        printf("\tApprovals: %d\n", token.second);
-    }
+    // printf("Token Approvals:\n");
+    // for (auto token : token_approvals)
+    // {
+    //     printf("Token: %s\n", token.first.c_str());
+    //     printf("\tApprovals: %d\n", token.second);
+    // }
 
     printf("Refresh Tokens:\n");
     for (auto token : refresh_tokens)

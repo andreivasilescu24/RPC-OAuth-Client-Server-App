@@ -48,7 +48,11 @@ xdr_delegated_action_payload (XDR *xdrs, delegated_action_payload *objp)
 {
 	register int32_t *buf;
 
-	 if (!xdr_string (xdrs, &objp->action, 16))
+	 if (!xdr_string (xdrs, &objp->action, ~0))
+		 return FALSE;
+	 if (!xdr_string (xdrs, &objp->resource, ~0))
+		 return FALSE;
+	 if (!xdr_string (xdrs, &objp->access_token, 16))
 		 return FALSE;
 	return TRUE;
 }
@@ -61,6 +65,16 @@ xdr_approve_req_token_response (XDR *xdrs, approve_req_token_response *objp)
 	 if (!xdr_string (xdrs, &objp->auth_token, 16))
 		 return FALSE;
 	 if (!xdr_int (xdrs, &objp->is_signed))
+		 return FALSE;
+	return TRUE;
+}
+
+bool_t
+xdr_refresh_token_payload (XDR *xdrs, refresh_token_payload *objp)
+{
+	register int32_t *buf;
+
+	 if (!xdr_string (xdrs, &objp->refresh_token, 16))
 		 return FALSE;
 	return TRUE;
 }

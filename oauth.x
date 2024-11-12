@@ -15,7 +15,9 @@ struct access_token_response {
 };
 
 struct delegated_action_payload {
-    string action <16>;
+    string action <>;
+    string resource<>;
+    string access_token<16>;
 };
 
 struct approve_req_token_response{
@@ -23,11 +25,16 @@ struct approve_req_token_response{
     int is_signed;
 };
 
+struct refresh_token_payload {
+    string refresh_token <16>;
+};
+
 program OAUTH_PROG {
     version OAUTH_VERS {
         string REQUEST_AUTHORIZATION(authorization_payload) = 1;
         access_token_response REQUEST_ACCESS_TOKEN(authorization_payload, approve_token_payload) = 2;
-        void VALIDATE_DELEGATED_ACTION(delegated_action_payload) = 3;
+        string VALIDATE_DELEGATED_ACTION(delegated_action_payload) = 3;
         approve_req_token_response APPROVE_REQUEST_TOKEN(approve_token_payload) = 4;
+        access_token_response REFRESH_TOKEN(refresh_token_payload) = 5;
     } = 1;
 } = 0x12345678;

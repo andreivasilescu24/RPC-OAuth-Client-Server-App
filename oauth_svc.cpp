@@ -29,7 +29,7 @@ _request_access_token_1(request_access_token_1_argument *argp, struct svc_req *r
 	return (request_access_token_1_svc(argp->arg1, argp->arg2, rqstp));
 }
 
-static void *
+static char **
 _validate_delegated_action_1(delegated_action_payload *argp, struct svc_req *rqstp)
 {
 	return (validate_delegated_action_1_svc(*argp, rqstp));
@@ -41,6 +41,12 @@ _approve_request_token_1(approve_token_payload *argp, struct svc_req *rqstp)
 	return (approve_request_token_1_svc(*argp, rqstp));
 }
 
+static access_token_response *
+_refresh_token_1(refresh_token_payload *argp, struct svc_req *rqstp)
+{
+	return (refresh_token_1_svc(*argp, rqstp));
+}
+
 static void
 oauth_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 {
@@ -50,6 +56,7 @@ oauth_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		request_access_token_1_argument request_access_token_1_arg;
 		delegated_action_payload validate_delegated_action_1_arg;
 		approve_token_payload approve_request_token_1_arg;
+		refresh_token_payload refresh_token_1_arg;
 	} argument;
 	char *result;
 	xdrproc_t _xdr_argument, _xdr_result;
@@ -75,7 +82,7 @@ oauth_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 
 	case VALIDATE_DELEGATED_ACTION:
 		_xdr_argument = (xdrproc_t)xdr_delegated_action_payload;
-		_xdr_result = (xdrproc_t)xdr_void;
+		_xdr_result = (xdrproc_t)xdr_wrapstring;
 		local = (char *(*)(char *, struct svc_req *))_validate_delegated_action_1;
 		break;
 
@@ -83,6 +90,12 @@ oauth_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		_xdr_argument = (xdrproc_t)xdr_approve_token_payload;
 		_xdr_result = (xdrproc_t)xdr_approve_req_token_response;
 		local = (char *(*)(char *, struct svc_req *))_approve_request_token_1;
+		break;
+
+	case REFRESH_TOKEN:
+		_xdr_argument = (xdrproc_t)xdr_refresh_token_payload;
+		_xdr_result = (xdrproc_t)xdr_access_token_response;
+		local = (char *(*)(char *, struct svc_req *))_refresh_token_1;
 		break;
 
 	default:
@@ -113,7 +126,6 @@ int main(int argc, char **argv)
 	register SVCXPRT *transp;
 
 	load_user_details(argv[1], argv[2], argv[3], argv[4]);
-	print_db();
 
 	pmap_unset(OAUTH_PROG, OAUTH_VERS);
 
