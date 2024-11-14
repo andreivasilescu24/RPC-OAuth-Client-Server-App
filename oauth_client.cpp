@@ -16,7 +16,8 @@ std::map<std::string, int> token_ops;
 
 void check_token_refresh(char *id, CLIENT *clnt)
 {
-	if (!token_ops[access_tokens[id]])
+	std::cout << "Checking token refresh for " << id << std::endl;
+	if (!token_ops[access_tokens[id]] && refresh_tokens.find(id) != refresh_tokens.end())
 	{
 		refresh_token_payload refresh_token_payload_;
 		refresh_token_payload_.refresh_token = new char[16];
@@ -25,8 +26,12 @@ void check_token_refresh(char *id, CLIENT *clnt)
 
 		access_tokens[id] = refreshed_tokens->resource_token;
 		refresh_tokens[id] = refreshed_tokens->refresh_token;
+
+		std::cout << "Token refreshed for " << id << " -> " << refreshed_tokens->resource_token << "," << refreshed_tokens->refresh_token << std::endl;
+
 		token_ops[refreshed_tokens->resource_token] = refreshed_tokens->valability;
 	}
+	std::cout << std::endl;
 }
 
 void oauth_prog_1(char *host, char *input_file_name)
@@ -93,6 +98,7 @@ void oauth_prog_1(char *host, char *input_file_name)
 
 					if (strlen(access_token_res->refresh_token))
 					{
+						std::cout << id << " wants auto refresh" << std::endl;
 						refresh_tokens[id] = access_token_res->refresh_token;
 						token_ops[access_tokens[id]] = access_token_res->valability;
 						std::cout << *auth_response << " -> " << access_token_res->resource_token << "," << access_token_res->refresh_token << std::endl;
@@ -111,6 +117,10 @@ void oauth_prog_1(char *host, char *input_file_name)
 		}
 		else
 		{
+			std::cout << "ACTION " << id << " " << operation << " with access token " << access_tokens[id] << std::endl;
+
+			if (token_ops.find(access_tokens[id]) != token_ops.end())
+				std::cout << " ops rem " << token_ops[access_tokens[id]] << std::endl;
 			check_token_refresh(id, clnt);
 			delegated_action_payload delegated_action_payload_;
 			delegated_action_payload_.action = new char[strlen(operation) + 1];
