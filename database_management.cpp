@@ -184,10 +184,11 @@ std::string get_refresh_associated_id(char *refresh_token)
     return refresh_tokens[refresh_token];
 }
 
-void link_refresh_token_permissions(char *refresh_token, char *id)
+void update_token_perms_on_refresh(char *new_token, char *id)
 {
     std::string ex_access_token = access_tokens[id];
-    token_permissions[refresh_token] = token_permissions[ex_access_token];
+    token_permissions[new_token] = token_permissions[ex_access_token];
+
     token_permissions.erase(ex_access_token);
 }
 
@@ -245,66 +246,66 @@ bool user_exists(char *user_id)
     return std::find(users.begin(), users.end(), user_id) != users.end();
 }
 
-void print_db()
-{
-    printf("Users:\n");
-    for (auto user : users)
-    {
-        printf("%s\n", user.c_str());
-    }
+// void print_db()
+// {
+//     printf("Users:\n");
+//     for (auto user : users)
+//     {
+//         printf("%s\n", user.c_str());
+//     }
 
-    printf("Resources:\n");
-    for (auto resource : resources)
-    {
-        printf("%s\n", resource.c_str());
-    }
+//     printf("Resources:\n");
+//     for (auto resource : resources)
+//     {
+//         printf("%s\n", resource.c_str());
+//     }
 
-    printf("Approvals:\n");
-    for (auto approval : request_approvals)
-    {
-        printf("Request %d:\n", approval.first);
-        for (auto resource : approval.second)
-        {
-            printf("\tResource: %s\n", resource.first.c_str());
-            printf("\t\tRead: %d\n", resource.second.read);
-            printf("\t\tInsert: %d\n", resource.second.insert);
-            printf("\t\tModify: %d\n", resource.second.modify);
-            printf("\t\tDelete: %d\n", resource.second.del);
-            printf("\t\tExecute: %d\n", resource.second.execute);
-        }
-    }
+//     printf("Approvals:\n");
+//     for (auto approval : request_approvals)
+//     {
+//         printf("Request %d:\n", approval.first);
+//         for (auto resource : approval.second)
+//         {
+//             printf("\tResource: %s\n", resource.first.c_str());
+//             printf("\t\tRead: %d\n", resource.second.read);
+//             printf("\t\tInsert: %d\n", resource.second.insert);
+//             printf("\t\tModify: %d\n", resource.second.modify);
+//             printf("\t\tDelete: %d\n", resource.second.del);
+//             printf("\t\tExecute: %d\n", resource.second.execute);
+//         }
+//     }
 
-    printf("Auth Tokens:\n");
-    for (auto token : auth_tokens)
-    {
-        printf("User: %s\n", token.first.c_str());
-        printf("\tToken: %s\n", token.second.c_str());
-    }
+//     printf("Auth Tokens:\n");
+//     for (auto token : auth_tokens)
+//     {
+//         printf("User: %s\n", token.first.c_str());
+//         printf("\tToken: %s\n", token.second.c_str());
+//     }
 
-    printf("Access Tokens:\n");
-    for (auto token : access_tokens)
-    {
-        printf("User: %s\n", token.first.c_str());
-        printf("\tToken: %s\n", token.second.c_str());
-    }
+//     printf("Access Tokens:\n");
+//     for (auto token : access_tokens)
+//     {
+//         printf("User: %s\n", token.first.c_str());
+//         printf("\tToken: %s\n", token.second.c_str());
+//     }
 
-    // printf("Token Approvals:\n");
-    // for (auto token : token_approvals)
-    // {
-    //     printf("Token: %s\n", token.first.c_str());
-    //     printf("\tApprovals: %d\n", token.second);
-    // }
+//     // printf("Token Approvals:\n");
+//     // for (auto token : token_approvals)
+//     // {
+//     //     printf("Token: %s\n", token.first.c_str());
+//     //     printf("\tApprovals: %d\n", token.second);
+//     // }
 
-    printf("Refresh Tokens:\n");
-    for (auto token : refresh_tokens)
-    {
-        printf("Token: %s\n", token.first.c_str());
-        printf("\tRefresh Token: %s\n", token.second.c_str());
-    }
+//     printf("Refresh Tokens:\n");
+//     for (auto token : refresh_tokens)
+//     {
+//         printf("Token: %s\n", token.first.c_str());
+//         printf("\tRefresh Token: %s\n", token.second.c_str());
+//     }
 
-    printf("Signed Tokens:\n");
-    for (auto token : signed_tokens)
-    {
-        printf("Token: %s\n", token.first.c_str());
-    }
-}
+//     printf("Signed Tokens:\n");
+//     for (auto token : signed_tokens)
+//     {
+//         printf("Token: %s\n", token.first.c_str());
+//     }
+// }

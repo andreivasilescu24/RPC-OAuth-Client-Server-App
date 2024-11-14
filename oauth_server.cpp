@@ -157,13 +157,14 @@ access_token_response *refresh_token_1_svc(refresh_token_payload argp, struct sv
 	char *id_c = new char[id.length() + 1];
 	strcpy(id_c, id.c_str());
 
-	link_refresh_token_permissions(argp.refresh_token, id_c);
-
 	std::cout << "BEGIN " << id << " AUTHZ" << " REFRESH" << std::endl;
 
 	result.resource_token = new char[16];
 	strcpy(result.resource_token, generate_access_token(argp.refresh_token));
+
+	update_token_perms_on_refresh(result.resource_token, id_c);
 	set_user_access_token(id_c, result.resource_token);
+
 	std::cout << "  AccessToken = " << result.resource_token << std::endl;
 
 	result.refresh_token = new char[16];
