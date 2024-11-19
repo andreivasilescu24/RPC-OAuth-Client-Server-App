@@ -20,10 +20,16 @@ struct authorization_payload {
 };
 typedef struct authorization_payload authorization_payload;
 
-struct approve_token_payload {
+struct authorization_response {
+	char *auth_token;
+	char *error;
+};
+typedef struct authorization_response authorization_response;
+
+struct authz_token_payload {
 	char *auth_token;
 };
-typedef struct approve_token_payload approve_token_payload;
+typedef struct authz_token_payload authz_token_payload;
 
 struct access_token_response {
 	char *resource_token;
@@ -40,6 +46,11 @@ struct delegated_action_payload {
 };
 typedef struct delegated_action_payload delegated_action_payload;
 
+struct validate_action_response {
+	char *action_output;
+};
+typedef struct validate_action_response validate_action_response;
+
 struct approve_req_token_response {
 	char *auth_token;
 	int is_signed;
@@ -53,7 +64,7 @@ typedef struct refresh_token_payload refresh_token_payload;
 
 struct request_access_token_1_argument {
 	authorization_payload arg1;
-	approve_token_payload arg2;
+	authz_token_payload arg2;
 };
 typedef struct request_access_token_1_argument request_access_token_1_argument;
 
@@ -62,17 +73,17 @@ typedef struct request_access_token_1_argument request_access_token_1_argument;
 
 #if defined(__STDC__) || defined(__cplusplus)
 #define REQUEST_AUTHORIZATION 1
-extern  char ** request_authorization_1(authorization_payload , CLIENT *);
-extern  char ** request_authorization_1_svc(authorization_payload , struct svc_req *);
+extern  authorization_response * request_authorization_1(authorization_payload , CLIENT *);
+extern  authorization_response * request_authorization_1_svc(authorization_payload , struct svc_req *);
 #define REQUEST_ACCESS_TOKEN 2
-extern  access_token_response * request_access_token_1(authorization_payload , approve_token_payload , CLIENT *);
-extern  access_token_response * request_access_token_1_svc(authorization_payload , approve_token_payload , struct svc_req *);
+extern  access_token_response * request_access_token_1(authorization_payload , authz_token_payload , CLIENT *);
+extern  access_token_response * request_access_token_1_svc(authorization_payload , authz_token_payload , struct svc_req *);
 #define VALIDATE_DELEGATED_ACTION 3
-extern  char ** validate_delegated_action_1(delegated_action_payload , CLIENT *);
-extern  char ** validate_delegated_action_1_svc(delegated_action_payload , struct svc_req *);
+extern  validate_action_response * validate_delegated_action_1(delegated_action_payload , CLIENT *);
+extern  validate_action_response * validate_delegated_action_1_svc(delegated_action_payload , struct svc_req *);
 #define APPROVE_REQUEST_TOKEN 4
-extern  approve_req_token_response * approve_request_token_1(approve_token_payload , CLIENT *);
-extern  approve_req_token_response * approve_request_token_1_svc(approve_token_payload , struct svc_req *);
+extern  approve_req_token_response * approve_request_token_1(authz_token_payload , CLIENT *);
+extern  approve_req_token_response * approve_request_token_1_svc(authz_token_payload , struct svc_req *);
 #define REFRESH_TOKEN 5
 extern  access_token_response * refresh_token_1(refresh_token_payload , CLIENT *);
 extern  access_token_response * refresh_token_1_svc(refresh_token_payload , struct svc_req *);
@@ -80,14 +91,14 @@ extern int oauth_prog_1_freeresult (SVCXPRT *, xdrproc_t, caddr_t);
 
 #else /* K&R C */
 #define REQUEST_AUTHORIZATION 1
-extern  char ** request_authorization_1();
-extern  char ** request_authorization_1_svc();
+extern  authorization_response * request_authorization_1();
+extern  authorization_response * request_authorization_1_svc();
 #define REQUEST_ACCESS_TOKEN 2
 extern  access_token_response * request_access_token_1();
 extern  access_token_response * request_access_token_1_svc();
 #define VALIDATE_DELEGATED_ACTION 3
-extern  char ** validate_delegated_action_1();
-extern  char ** validate_delegated_action_1_svc();
+extern  validate_action_response * validate_delegated_action_1();
+extern  validate_action_response * validate_delegated_action_1_svc();
 #define APPROVE_REQUEST_TOKEN 4
 extern  approve_req_token_response * approve_request_token_1();
 extern  approve_req_token_response * approve_request_token_1_svc();
@@ -101,18 +112,22 @@ extern int oauth_prog_1_freeresult ();
 
 #if defined(__STDC__) || defined(__cplusplus)
 extern  bool_t xdr_authorization_payload (XDR *, authorization_payload*);
-extern  bool_t xdr_approve_token_payload (XDR *, approve_token_payload*);
+extern  bool_t xdr_authorization_response (XDR *, authorization_response*);
+extern  bool_t xdr_authz_token_payload (XDR *, authz_token_payload*);
 extern  bool_t xdr_access_token_response (XDR *, access_token_response*);
 extern  bool_t xdr_delegated_action_payload (XDR *, delegated_action_payload*);
+extern  bool_t xdr_validate_action_response (XDR *, validate_action_response*);
 extern  bool_t xdr_approve_req_token_response (XDR *, approve_req_token_response*);
 extern  bool_t xdr_refresh_token_payload (XDR *, refresh_token_payload*);
 extern  bool_t xdr_request_access_token_1_argument (XDR *, request_access_token_1_argument*);
 
 #else /* K&R C */
 extern bool_t xdr_authorization_payload ();
-extern bool_t xdr_approve_token_payload ();
+extern bool_t xdr_authorization_response ();
+extern bool_t xdr_authz_token_payload ();
 extern bool_t xdr_access_token_response ();
 extern bool_t xdr_delegated_action_payload ();
+extern bool_t xdr_validate_action_response ();
 extern bool_t xdr_approve_req_token_response ();
 extern bool_t xdr_refresh_token_payload ();
 extern bool_t xdr_request_access_token_1_argument ();

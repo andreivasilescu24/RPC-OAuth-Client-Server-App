@@ -17,7 +17,7 @@
 #define SIG_PF void (*)(int)
 #endif
 
-static char **
+static authorization_response *
 _request_authorization_1(authorization_payload *argp, struct svc_req *rqstp)
 {
 	return (request_authorization_1_svc(*argp, rqstp));
@@ -29,14 +29,14 @@ _request_access_token_1(request_access_token_1_argument *argp, struct svc_req *r
 	return (request_access_token_1_svc(argp->arg1, argp->arg2, rqstp));
 }
 
-static char **
+static validate_action_response *
 _validate_delegated_action_1(delegated_action_payload *argp, struct svc_req *rqstp)
 {
 	return (validate_delegated_action_1_svc(*argp, rqstp));
 }
 
 static approve_req_token_response *
-_approve_request_token_1(approve_token_payload *argp, struct svc_req *rqstp)
+_approve_request_token_1(authz_token_payload *argp, struct svc_req *rqstp)
 {
 	return (approve_request_token_1_svc(*argp, rqstp));
 }
@@ -55,7 +55,7 @@ oauth_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 		authorization_payload request_authorization_1_arg;
 		request_access_token_1_argument request_access_token_1_arg;
 		delegated_action_payload validate_delegated_action_1_arg;
-		approve_token_payload approve_request_token_1_arg;
+		authz_token_payload approve_request_token_1_arg;
 		refresh_token_payload refresh_token_1_arg;
 	} argument;
 	char *result;
@@ -70,7 +70,7 @@ oauth_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 
 	case REQUEST_AUTHORIZATION:
 		_xdr_argument = (xdrproc_t)xdr_authorization_payload;
-		_xdr_result = (xdrproc_t)xdr_wrapstring;
+		_xdr_result = (xdrproc_t)xdr_authorization_response;
 		local = (char *(*)(char *, struct svc_req *))_request_authorization_1;
 		break;
 
@@ -82,12 +82,12 @@ oauth_prog_1(struct svc_req *rqstp, register SVCXPRT *transp)
 
 	case VALIDATE_DELEGATED_ACTION:
 		_xdr_argument = (xdrproc_t)xdr_delegated_action_payload;
-		_xdr_result = (xdrproc_t)xdr_wrapstring;
+		_xdr_result = (xdrproc_t)xdr_validate_action_response;
 		local = (char *(*)(char *, struct svc_req *))_validate_delegated_action_1;
 		break;
 
 	case APPROVE_REQUEST_TOKEN:
-		_xdr_argument = (xdrproc_t)xdr_approve_token_payload;
+		_xdr_argument = (xdrproc_t)xdr_authz_token_payload;
 		_xdr_result = (xdrproc_t)xdr_approve_req_token_response;
 		local = (char *(*)(char *, struct svc_req *))_approve_request_token_1;
 		break;
