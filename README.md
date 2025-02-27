@@ -1,4 +1,4 @@
-# RPC OAuth Server System 
+# RPC OAuth Client Server Application 
 
 ## Server Stub
 
