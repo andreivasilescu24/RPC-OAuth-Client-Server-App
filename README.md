@@ -1,7 +1,5 @@
 # RPC OAuth 
 
-# Server Stub
-
 In the server stub, I included the file `database_management.h` to access the function that reads input information from files to initialize the database. The function `load_user_details` will receive as parameters the filenames provided as arguments at runtime, along with their validity, and will store them in data structures/variables that constitute the server's database.
 
 ## Implemented Procedures:
