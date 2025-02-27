@@ -1,88 +1,46 @@
-Nume: Vasilescu Andrei
+# RPC OAuth 
 
-Grupa: 343C3
+# Server Stub
 
-- In stub-ul server am inclus fisierul "database_management.h" pentru a avea acces la functia care citeste informatiile de input din
-  fisiere pentru a initializa baza de date. Functia `load_user_details` va primi ca parametru numele fisierelor date ca argumente la
-  rulare, cat si valabilitatea si le va retine in structuri de date/variabile ce constituie baza de date a server-ului.
+In the server stub, I included the file `database_management.h` to access the function that reads input information from files to initialize the database. The function `load_user_details` will receive as parameters the filenames provided as arguments at runtime, along with their validity, and will store them in data structures/variables that constitute the server's database.
 
-## Proceduri implementate:
+## Implemented Procedures:
 
-- `REQUEST_AUTHORIZATION` va primi de la client id-ul user-ului ce doreste autentificarea si un flag (0/1) in functie de optiunea
-  clientului pentru refresh automat al token-ului de access. Serverul va verifica daca id-ul primit exista in baza de date. Procedura
-  vaintoarce o structura ce va contine un camp pentru auth token si unul pentru o posibila eroare. Daca user-ul nu este gasit in baza
-  de date, se va pune in campul de eroare string-ul `USER_NOT_FOUND`, iar campul pentru token va fi un string gol. In caz contrar,
-  campul pentru token va contine token-ul de autorizare si campul de eroare va fi gol.
+- `REQUEST_AUTHORIZATION` will receive from the client the user ID requesting authentication and a flag (0/1) depending on the client's option for automatic access token refresh. The server will check if the received ID exists in the database. The procedure will return a structure containing a field for the auth token and another for a possible error. If the user is not found in the database, the error field will contain the string `USER_NOT_FOUND`, and the token field will be an empty string. Otherwise, the token field will contain the authorization token, and the error field will be empty.
 
-- `REQUEST_ACCESS_TOKEN` va primi payload-ul pe care il primeste si procedura de auotirizare, cu id si flag-ul de auto refresh,
-  alaturi de o structura ce are inauntrul ei token-ul de autorizare primit anterior. Procedura va intoarce o structura ce contine access
-  token (gol in caz de eroare), refresh token (camp gol daca nu s-a optat pentru auto refresh sau in caz de eroare), camp de eroare (gol
-  daca accesul este permis) si un camp pentru valabilitatea token-ului (numarul de operatii valabile, 0 in caz de eroare). Procedura
-  verifica daca end user-ul a semnat token-ul de autorizare, iar daca nu e semnat va intoarce eroarea `REQUEST_DENIED`.
-  Daca token-ul este semnat, se va genera token-ul de acces si daca user-ul a optat pentru refresh automat se va genera si token-ul de
-  refresh. Tokenii, cat si valabilitatea vor fi intoarse catre client, de asemenea vor fi salvate in baza de date mapari intre id-ul
-  user-ului si access token, id si refresh token daca este cazul, access token si operatii ramase si access token si permisiunile
-  aprobate de end user.
+- `REQUEST_ACCESS_TOKEN` will receive the same payload as the authorization procedure, containing the ID and the auto-refresh flag, along with a structure that holds the previously received authorization token. The procedure will return a structure containing the access token (empty in case of an error), the refresh token (empty if auto-refresh was not selected or in case of an error), an error field (empty if access is granted), and a validity field (number of valid operations, 0 in case of an error). The procedure checks whether the end-user has signed the authorization token; if not, it returns the error `REQUEST_DENIED`. If the token is signed, the access token is generated, and if the user has opted for auto-refresh, a refresh token is also generated. The tokens and their validity are returned to the client and saved in the database, mapping the user ID to the access token, refresh token (if applicable), access token to remaining operations, and access token to approved permissions.
 
-- `VALIDATE_DELEGATED_ACTION` va primi o structura ce contine actiunea, resursa la care se doreste accesul si access token-ul user-ului. Va verifica daca token-ul
-  este asociat unui id de utilizator (daca nu se intoarce eroarea `PERMISSION_DENIED`), daca token-ul mai are operatii ramase (daca nu se intoarce eroarea
-  `TOKEN_EXPIRED`), daca resursa exista (daca nu se intoarce eroarea `RESOURCE_NOT_FOUND`) si daca token-ul permite operatia dorita (daca nu se intoarce eroarea
-  `OPERATION_NOT_PERMITTED`). Daca toate verificarile au fost cu succes se va intoarce `PERMISSION_GRANTED`. De asemenea, daca token-ul exista si nu a expirat se
-  va updata si numarul de operatii ramase.
+- `VALIDATE_DELEGATED_ACTION` will receive a structure containing the action, the resource to be accessed, and the user's access token. It will check whether the token is associated with a user ID (otherwise, it returns the error `PERMISSION_DENIED`), whether the token has remaining valid operations (otherwise, it returns `TOKEN_EXPIRED`), whether the resource exists (otherwise, it returns `RESOURCE_NOT_FOUND`), and whether the token allows the requested operation (otherwise, it returns `OPERATION_NOT_PERMITTED`). If all checks pass, it returns `PERMISSION_GRANTED`. Additionally, if the token exists and has not expired, the number of remaining operations will be updated.
 
-- `APPROVE_REQUEST_TOKEN` va determina statusul semnarii token-ului de autorizare, primind token-ul in payload. Procedura verifica daca request-ul curent are
-  alocate permisiuni, iar daca are va semna token-ul si il va intoarce catre client, retinand si in baza de date ca token-ul respectiv a fost semnat. Am
-  implementat procesul de semnare prin adaugarea unui flag in structura de raspuns a procedurii care poate fi 0 sau 1. Astfel daca flag-ul se va intoarce catre
-  client cu valoarea 1, acesta va stii ca token-ul este semnat, iar daca se va intoarce cu valoarea 0, nu este semnat.
+- `APPROVE_REQUEST_TOKEN` will determine the signing status of the authorization token, receiving the token in the payload. The procedure checks if the current request has allocated permissions; if it does, it signs the token and returns it to the client, also storing in the database that the token has been signed. The signing process was implemented by adding a flag in the procedure's response structure, which can be 0 or 1. If the flag is returned to the client with the value 1, it indicates that the token is signed; otherwise, if the value is 0, the token is not signed.
 
-- `REFRESH_TOKEN`: am adaugat aceasta procedura pentru a separa logica de refresh a token-ului de cea de cerere de acces, dar si pentru a putea trimite un payload
-  diferit catre aceasta procedura care sa contina doar refresh token-ul. Procedura aceasta va fi apelata doar de clientii ce au optat pentru refresh automat.
-  Astfel, token-ul de refresh este primit, se genereaza noul access token si se updateaza baza de date: noul access token va fi mapat la permisiunile pe care le
-  avea vechiul token, iar id-ul user-ului va fi mapat la noul access token, resetandu-se si operatiile ramase la valabilitatea data ca input la program. De
-  asemenea, va fi generat si noul refresh token, updatandu-se baza de date si pentru acesta. Apoi, se vor intoarce ambii tokeni generati, impreuna cu
-  valabilitatea.
+- `REFRESH_TOKEN`: This procedure was added to separate the token refresh logic from the access request logic and to allow sending a different payload containing only the refresh token. This procedure is called only by clients who have opted for auto-refresh. The refresh token is received, a new access token is generated, and the database is updated: the new access token is mapped to the same permissions as the old token, the user ID is mapped to the new access token, and the remaining operations count is reset based on the input validity. A new refresh token is also generated, and the database is updated accordingly. Both generated tokens and their validity are then returned.
 
 ## Client
 
-Clientul va citi linie cu linie din fisierul de input al clientului, dat ca argument la rulare. La fiecare linie, se verifica daca este o operatie de tip `REQUEST` sau de alt tip.
+The client reads line by line from the input file provided as an argument at runtime. For each line, it checks whether it is a `REQUEST` operation or another type of operation.
 
-- Operatie `REQUEST`: clientul va crea payload-ul pentru autorizare cu id-ul user-ului din comanda si valoarea pentru refresh automat si va apela procedura de
-  `REQUEST_AUTHORIZATION`. Daca se primeste eroare se afiseaza si se trece mai departe. Daca nu se primeste eroare si se primeste un token de autorizare, se va
-  apela procedura `APPROVE_REQUEST_TOKEN` pentru procesul de aprobare/semnare a token-ului primit anterior. Apoi va fi apelata procedura `REQUEST_ACCESS_TOKEN`
-  pentru a obtine token-ul de acces. Daca se va primi o eroare, aceasta va fi afisata si se va continua cu urmatoarea comanda, daca se primeste un token de
-  acces, client-ul o sa il mapeze cu id-ul user-ului de la comanda actuala si o sa il retina in propriul storage. De asemenea, daca user-ul a optat pentru auto
-  refresh, va fi retinut si refresh token-ul in baza de date, dar si numarul de operatii valabile pentru access token pentru a stii
-  cand este momentul pentru un refresh.
+- **`REQUEST` operation:** The client creates the authorization payload with the user ID from the command and the auto-refresh value, then calls the `REQUEST_AUTHORIZATION` procedure. If an error is received, it is displayed, and the process moves to the next command. If an authorization token is received, the client calls the `APPROVE_REQUEST_TOKEN` procedure to approve/sign the previously received token. Then, it calls the `REQUEST_ACCESS_TOKEN` procedure to obtain an access token. If an error is received, it is displayed, and the process continues with the next command. If an access token is received, the client maps it to the user ID from the current command and stores it. Additionally, if the user opted for auto-refresh, the refresh token and the number of remaining valid operations for the access token are stored to determine when a refresh is needed.
 
-- Operatie de alt tip: daca user-ul care da comanda a optat pentru auto refresh, se verifica prima data daca este nevoie pentru un refresh (daca token-ul sau
-  actual de acces mai are sau nu operatii valabile; daca nu mai are operatii ramase, se va apela procedura `REFRESH_TOKEN` updatand tokenii pentru id-ul
-  user-ului, in storage-ul clientului). Apoi, se va crea payload-ul pentru validarea actiunii, populandu-se cu operatia, resursa si cu token-ul de acces
-  corespunzator id-ului din comanda. Acest payload va fi trimis catre procedura `VALIDATE_DELEGATED_ACTION`. Daca token-ul de acces a expirat, clientul va
-  sterge din storage maparea dintre id-ul user-ului si token-ul actual. Daca insa se primeste orice alt raspuns decat `PERMISSION_DENIED` si user-ul are auto
-  refresh activat (token-ul lui de access are mapat numarul de operatii ramase, in client) va fi decrementat numarul de operatii ramase pentru access token-ul
-  respectiv.
+- **Other operations:** If the user opted for auto-refresh, the client first checks whether a refresh is needed (i.e., if the current access token has remaining valid operations). If no operations remain, the `REFRESH_TOKEN` procedure is called, updating the tokens for the user ID in the client’s storage. Then, the client creates the payload for action validation, populating it with the operation, resource, and the access token corresponding to the user ID from the command. This payload is sent to the `VALIDATE_DELEGATED_ACTION` procedure. If the access token has expired, the client removes the mapping between the user ID and the current token from storage. If any response other than `PERMISSION_DENIED` is received and auto-refresh is enabled, the remaining operations count for the access token is decremented.
 
 ## Server
 
-Pe langa functionalitatile procedurilor descrise mai sus, voi detalia cum manageriaza server-ul baza de date:
+Besides the functionalities of the procedures described above, here is how the server manages its database:
 
-- Functia `load_user_details` va citi informatiile din fisierele de input si va retine resursele de pe server, userii, cat si permisiunile corespunzatoare
-  request-urilor de acces, ce vor avea asociat un index, pentru a stii in functie de valoarea unui contor din server (ce contorizeaza numarul de request-uri
-  primite) ce permisiuni sa alocam token-ului. Pentru reprezentarea permisiunilor pe o resursa am folosit o mapare intre numele resursei si o structura
-  `ResourceRights` ce are un camp corespunzator fiecarui tip de actiune posibila, care poate avea valoarea de 0 sau 1 (nu este permis sau este permis). Aceasta
-  functie este apelata la pornirea server-ului din stub-ul server.
+- The `load_user_details` function reads information from input files and stores the server's resources, users, and corresponding access request permissions. Each request is assigned an index so that the server can allocate permissions to the token based on the number of received requests. Permissions for a resource are represented using a mapping between the resource name and a `ResourceRights` structure, where each action type field can have a value of 0 or 1 (not permitted or permitted). This function is called at server startup from the server stub.
 
-- Baza de date a server-ului este generata prin mai multe map-uri sau vectori, dupa cum urmeaza:
+- The server database is managed using multiple maps and vectors, as follows:
 
-  - `resources`: vectorul cu numele resurselor valabile pe server
-  - `users`: userii din baza de date a server-ului
-  - `request_approvals`: map intre id-ul/contor-ul operatiei de request primita si permisiunile pentru acel request. Este de ajutor apoi pentru crearea map-ului `token_permissions` si asocierea
-    corecta intre tokeni si permisiuni
-  - `token_permissions`: map intre tokeni de access si permisiunile alocate
-  - `auth_tokens`: map intre id-ul user-ului si token-ul de autorizare
-  - `access_tokens`: map intre id-ul user-ului si token-ul de acces
-  - `refresh_tokens`: map intre refresh token si id-ul user-ului
-  - `signed_tokens`: map pentru a retine tokenii semnati
-  - `token_operations_remaining`: map intre access token si numarul de operatii ramase pentru acesta
+  - `resources`: Vector containing the names of available resources on the server.
+  - `users`: List of users stored in the server's database.
+  - `request_approvals`: Map between request operation ID/counter and the corresponding permissions, helping create the `token_permissions` map.
+  - `token_permissions`: Map between access tokens and assigned permissions.
+  - `auth_tokens`: Map between user IDs and authorization tokens.
+  - `access_tokens`: Map between user IDs and access tokens.
+  - `refresh_tokens`: Map between refresh tokens and user IDs.
+  - `signed_tokens`: Map storing signed tokens.
+  - `token_operations_remaining`: Map between access tokens and their remaining valid operations.
 
-- In fisierul `database_management.cpp` sunt implementate multe functii care fie verifica detalii in baza de date, fie updateaza baza de date prin stergeri sau inserari, aici retinandu-se baza de date din server.
+- In the `database_management.cpp` file, various functions are implemented to check database details, update entries, and store the server's database.
+
